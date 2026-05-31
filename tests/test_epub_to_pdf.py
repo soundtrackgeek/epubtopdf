@@ -2,7 +2,7 @@ import zipfile
 from pathlib import Path
 from unittest import TestCase
 
-from epub_to_pdf import convert_epub, convert_folder, read_epub_text_blocks
+from epub_to_pdf import convert_epub, convert_folder, parse_args, read_epub_text_blocks
 
 
 class EpubToPdfTests(TestCase):
@@ -34,6 +34,18 @@ class EpubToPdfTests(TestCase):
 
         self.assertEqual("converted", first[0][0])
         self.assertEqual("skipped", second[0][0])
+
+    def test_accepts_input_and_output_dir_aliases(self) -> None:
+        args = parse_args(["--input-dir", "books", "--output-dir", "out"])
+
+        self.assertEqual(Path("books"), args.input_dir)
+        self.assertEqual(Path("out"), args.output_dir)
+        self.assertEqual(args.input_dir, args.epub_dir)
+        self.assertEqual(args.output_dir, args.pdf_dir)
+
+        old_args = parse_args(["--epub-dir", "books", "--pdf-dir", "out"])
+        self.assertEqual(Path("books"), old_args.input_dir)
+        self.assertEqual(Path("out"), old_args.output_dir)
 
     def setUp(self) -> None:
         self.tmp_path = Path(self._testMethodName)

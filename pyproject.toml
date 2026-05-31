@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "epubtopdf"
+version = "0.2.0"
+description = "Convert EPUB files from a folder into readable PDF files."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "reportlab>=4.0",
+    "tqdm>=4.66",
+]
+
+[project.scripts]
+epubtopdf = "epub_to_pdf:main"
+
+[tool.setuptools]
+py-modules = ["epub_to_pdf"]

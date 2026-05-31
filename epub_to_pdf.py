@@ -27,12 +27,19 @@ try:
     from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
 except ImportError as exc:  # pragma: no cover - exercised by users without deps
     raise SystemExit(
-        "Missing dependency: reportlab. Install it with `python -m pip install -r requirements.txt`."
+        "Missing dependency: reportlab. Install it with `python -m pip install .`."
+    ) from exc
+
+try:
+    from tqdm import tqdm
+except ImportError as exc:  # pragma: no cover - exercised by users without deps
+    raise SystemExit(
+        "Missing dependency: tqdm. Install it with `python -m pip install .`."
     ) from exc
 
 
 EPUB_GLOB = "*.epub"
-VERSION = "0.1.0"
+VERSION = "0.2.0"
 
 
 @dataclass(frozen=True)
@@ -143,7 +150,12 @@ class HTMLTextExtractor(HTMLParser):
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     try:
-        results = convert_folder(args.epub_dir, args.pdf_dir, overwrite=args.overwrite)
+        results = convert_folder(
+            args.input_dir,
+            args.output_dir,
+            overwrite=args.overwrite,
+            show_progress=not args.no_progress,
+        )
     except EpubError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
@@ -170,13 +182,17 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         description="Convert every EPUB in an input folder to PDFs in an output folder."
     )
     parser.add_argument(
+        "--input-dir",
         "--epub-dir",
+        dest="input_dir",
         type=Path,
         default=Path("epub"),
         help="Folder containing .epub files (default: epub).",
     )
     parser.add_argument(
+        "--output-dir",
         "--pdf-dir",
+        dest="output_dir",
         type=Path,
         default=Path("pdf"),
         help="Folder where .pdf files will be written (default: pdf).",
@@ -187,15 +203,23 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Replace existing PDF files instead of skipping them.",
     )
     parser.add_argument(
+        "--no-progress",
+        action="store_true",
+        help="Hide the tqdm progress bar.",
+    )
+    parser.add_argument(
         "--version",
         action="version",
         version=f"%(prog)s {VERSION}",
     )
-    return parser.parse_args(argv)
+    args = parser.parse_args(argv)
+    args.epub_dir = args.input_dir
+    args.pdf_dir = args.output_dir
+    return args
 
 
 def convert_folder(
-    epub_dir: Path, pdf_dir: Path, *, overwrite: bool = False
+    epub_dir: Path, pdf_dir: Path, *, overwrite: bool = False, show_progress: bool = False
 ) -> list[tuple[str, Path, Path, str]]:
     epub_dir = epub_dir.expanduser()
     pdf_dir = pdf_dir.expanduser()
@@ -211,7 +235,10 @@ def convert_folder(
         raise EpubError(f"No EPUB files found in {epub_dir}")
 
     results: list[tuple[str, Path, Path, str]] = []
-    for epub_path in epub_files:
+    epub_iterable = (
+        tqdm(epub_files, desc="Converting EPUBs", unit="file") if show_progress else epub_files
+    )
+    for epub_path in epub_iterable:
         pdf_path = pdf_dir / f"{_clean_filename(epub_path.stem)}.pdf"
         if pdf_path.exists() and not overwrite:
             results.append(("skipped", epub_path, pdf_path, "PDF already exists"))
