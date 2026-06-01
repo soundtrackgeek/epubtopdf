@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.2.1] - 2026-06-01
+### Added
+- Added an MIT License and package license metadata.
+
 ## [0.2.0] - 2026-05-31
 ### Added
 - Added `pyproject.toml` packaging metadata with an `epubtopdf` console command.

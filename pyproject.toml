@@ -4,10 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "epubtopdf"
-version = "0.2.0"
+version = "0.2.1"
 description = "Convert EPUB files from a folder into readable PDF files."
 readme = "README.md"
 requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
 dependencies = [
     "reportlab>=4.0",
     "tqdm>=4.66",

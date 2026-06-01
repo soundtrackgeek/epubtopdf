@@ -42,3 +42,8 @@ Use `--no-progress` to hide the progress bar in scripts or logs.
 
 This converter focuses on readable text extraction from the EPUB spine. It does
 not try to preserve exact ebook styling, page layout, or images.
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for
+details.
